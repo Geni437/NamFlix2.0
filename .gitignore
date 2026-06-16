@@ -1,0 +1,30 @@
+# Laravel
+namflix-api/vendor/
+namflix-api/.env
+namflix-api/storage/logs/*.log
+namflix-api/bootstrap/cache/*.php
+namflix-api/.phpunit.result.cache
+
+# Next.js
+namflix-frontend/.env.local
+namflix-frontend/node_modules/
+namflix-frontend/out/
+namflix-frontend/.next/
+
+# Flutter
+namflix-flutter/.dart_tool/
+namflix-flutter/build/
+namflix-flutter/android/key.properties
+namflix-flutter/android/app/keystore.jks
+namflix-flutter/.flutter-plugins
+namflix-flutter/.flutter-plugins-dependencies
+namflix-flutter/pubspec.lock
+namflix-flutter/*.jks
+
+# Claude memory (never commit)
+.claude/
+
+# General
+.DS_Store
+Thumbs.db
+*.zip

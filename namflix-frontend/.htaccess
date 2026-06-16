@@ -1,0 +1,38 @@
+# Force HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Dynamic Next.js routes — serve placeholder shell (client router reads real URL)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^channel/[^/]+/?$ /channel/placeholder/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^country/[^/]+/?$ /country/us/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^category/[^/]+/?$ /category/news/index.html [L]
+
+# Clean URL routing for static Next.js pages
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# GZIP compression
+AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
+
+# Cache static assets 1 year
+<FilesMatch "\.(js|css|png|jpg|jpeg|svg|woff2|ico)$">
+  Header set Cache-Control "max-age=31536000, public, immutable"
+</FilesMatch>
+
+# No cache for HTML
+<FilesMatch "\.html$">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+</FilesMatch>

@@ -1,0 +1,44 @@
+name: Deploy Laravel API to Namecheap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'namflix-api/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: SSH Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.NAMECHEAP_HOST }}
+          username: ${{ secrets.NAMECHEAP_USER }}
+          password: ${{ secrets.NAMECHEAP_PASSWORD }}
+          port: 21098
+          script: |
+            set -e
+
+            cd ~/namflix-api
+
+            # Pull latest code
+            git pull origin main
+
+            # Install PHP dependencies (production only)
+            php ~/composer install --no-dev --optimize-autoloader
+
+            # Run any new migrations
+            php artisan migrate --force
+
+            # Re-cache for performance
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "✅ Deploy complete at $(date)"
