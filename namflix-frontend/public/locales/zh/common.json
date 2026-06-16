@@ -72,7 +72,7 @@
   },
   "search": {
     "placeholder": "搜索频道...",
-    "results_for": ""{query}"的搜索结果",
+    "results_for": "\"{query}\"的搜索结果",
     "no_results_title": "未找到结果",
     "no_results_subtitle": "尝试不同的搜索词或按类别浏览",
     "recent_searches": "最近搜索",
