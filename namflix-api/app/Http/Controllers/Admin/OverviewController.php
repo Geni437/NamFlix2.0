@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Channel;
+use App\Models\Country;
 use App\Models\PlatformStat;
 use App\Models\Stream;
 use App\Models\StreamReport;
@@ -16,28 +17,62 @@ class OverviewController extends Controller
 {
     public function index()
     {
+        $totalChannels   = Channel::count();
+        $visibleChannels = Channel::where('is_hidden', false)->count();
+
         $stats = [
-            'total_channels' => Channel::where('is_hidden', false)->count(),
-            'live_streams' => Stream::where('is_live', true)->count(),
-            'dead_streams' => Stream::where('is_live', false)->where('is_geo_blocked', false)->count(),
-            'geo_blocked' => Stream::where('is_geo_blocked', true)->count(),
-            'total_users' => User::count(),
-            'active_today' => User::whereDate('last_seen_at', today())->count(),
-            'pro_users' => User::where('is_pro', true)->count(),
-            'reports_pending' => StreamReport::count(),
+            'total_channels'      => $totalChannels,
+            'visible_channels'    => $visibleChannels,
+            'hidden_channels'     => $totalChannels - $visibleChannels,
+            'live_streams'        => Stream::where('is_live', true)->count(),
+            'total_streams'       => Stream::count(),
+            'geo_blocked_streams' => Stream::where('is_geo_blocked', true)->count(),
+            'total_users'         => User::count(),
+            'pro_users'           => User::where('is_pro', true)->count(),
+            'banned_users'        => User::where('is_banned', true)->count(),
+            'open_reports'        => StreamReport::count(),
+            'countries'           => DB::table('channels')->whereNotNull('country_code')->distinct()->count('country_code'),
         ];
 
-        // Top 10 countries by channel count
-        $countryChartData = DB::table('channels')
+        // Sync logs keyed by artisan command name (matches view's foreach)
+        $syncTypeMap = [
+            'namflix:sync-iptv'     => 'iptv_sync',
+            'namflix:check-streams' => 'health_check',
+            'namflix:sync-epg'      => 'epg_sync',
+        ];
+        $syncLogs = [];
+        foreach ($syncTypeMap as $cmd => $type) {
+            $syncLogs[$cmd] = SyncLog::where('type', $type)->latest('started_at')->first();
+        }
+
+        // Chart data: last 14 days
+        $dates    = [];
+        $views    = [];
+        $newUsers = [];
+        for ($i = 13; $i >= 0; $i--) {
+            $date     = now()->subDays($i);
+            $dates[]  = $date->format('M d');
+            $stat     = PlatformStat::whereDate('stat_date', $date->toDateString())->first();
+            $views[]  = $stat?->total_watch_events ?? 0;
+            $newUsers[] = User::whereDate('created_at', $date->toDateString())->count();
+        }
+
+        // Top 10 countries
+        $countryRows  = DB::table('channels')
             ->where('is_hidden', false)
             ->whereNotNull('country_code')
-            ->select('country_code', DB::raw('COUNT(*) as cnt'))
+            ->select('country_code', DB::raw('COUNT(*) as count'))
             ->groupBy('country_code')
-            ->orderByDesc('cnt')
+            ->orderByDesc('count')
             ->limit(10)
             ->get();
+        $countryNames = Country::whereIn('code', $countryRows->pluck('country_code'))->pluck('name', 'code');
+        $countries    = $countryRows->map(fn ($r) => [
+            'name'  => $countryNames->get($r->country_code, $r->country_code),
+            'count' => $r->count,
+        ])->values()->toArray();
 
-        // Category distribution (flatten JSON arrays in PHP)
+        // Top 10 categories
         $catCounts = [];
         DB::table('channels')
             ->where('is_hidden', false)
@@ -49,38 +84,21 @@ class OverviewController extends Controller
                 }
             });
         arsort($catCounts);
-        $catCounts = array_slice($catCounts, 0, 10, true);
-        $catNames = Category::whereIn('id', array_keys($catCounts))->pluck('name', 'id');
-        $categoryLabels = array_values(array_map(fn ($id) => $catNames->get($id, $id), array_keys($catCounts)));
-        $categoryCounts = array_values($catCounts);
+        $catCounts  = array_slice($catCounts, 0, 10, true);
+        $catNames   = Category::whereIn('id', array_keys($catCounts))->pluck('name', 'id');
+        $categories = array_values(array_map(fn ($id) => [
+            'name'  => $catNames->get($id, (string) $id),
+            'count' => $catCounts[$id],
+        ], array_keys($catCounts)));
 
-        // Platform stats for charts (last 14 days)
-        $platformStats = PlatformStat::where('stat_date', '>=', now()->subDays(14))
-            ->orderBy('stat_date')
-            ->get(['stat_date', 'live_streams', 'total_channels', 'total_watch_events']);
+        $chartData = [
+            'dates'      => $dates,
+            'views'      => $views,
+            'new_users'  => $newUsers,
+            'countries'  => $countries,
+            'categories' => $categories,
+        ];
 
-        $statsLabels = $platformStats->map(fn ($s) => $s->stat_date->format('M d'))->toArray();
-        $livePercent = $platformStats->map(
-            fn ($s) => $s->total_channels > 0 ? round(($s->live_streams / $s->total_channels) * 100) : 0
-        )->toArray();
-        $watchEvents = $platformStats->pluck('total_watch_events')->toArray();
-
-        // Sync status
-        $lastIptvSync = SyncLog::where('type', 'iptv_sync')->latest('started_at')->first();
-        $lastHealthCheck = SyncLog::where('type', 'health_check')->latest('started_at')->first();
-        $lastEpgSync = SyncLog::where('type', 'epg_sync')->latest('started_at')->first();
-
-        return view('admin.overview', compact(
-            'stats',
-            'countryChartData',
-            'categoryLabels',
-            'categoryCounts',
-            'statsLabels',
-            'livePercent',
-            'watchEvents',
-            'lastIptvSync',
-            'lastHealthCheck',
-            'lastEpgSync'
-        ));
+        return view('admin.overview', compact('stats', 'syncLogs', 'chartData'));
     }
 }
