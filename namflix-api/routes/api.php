@@ -19,6 +19,19 @@ use App\Services\StreamHealthService;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Public platform settings (prices shown on Pro page etc.)
+    Route::get('/settings', function () {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'platform_name'      => \App\Models\Setting::get('platform_name', 'NamFlix'),
+                'pro_monthly_price'  => (float) \App\Models\Setting::get('pro_monthly_price', '2.99'),
+                'pro_annual_price'   => (float) \App\Models\Setting::get('pro_annual_price', '19.99'),
+                'max_free_favorites' => (int) \App\Models\Setting::get('max_free_favorites', '20'),
+            ],
+        ]);
+    });
+
     // Public routes
     Route::get('/channels', [ChannelController::class, 'index']);
     Route::get('/channels/{id}', [ChannelController::class, 'show']);

@@ -7,18 +7,30 @@ import { useAuth } from '@/context/AuthContext';
 
 const FEATURES = [
   { label: 'Live TV Access',  free: '✅ All channels', pro: '✅ All channels' },
-  { label: 'Advertisements',  free: '✅ Ad-supported',  pro: '❌ None' },
   { label: 'Favorites',       free: '20 max',           pro: 'Unlimited' },
   { label: 'Watch History',   free: '7 days',           pro: '90 days' },
   { label: 'HD Priority',     free: '❌',               pro: '✅' },
+  { label: 'Priority Support', free: '❌',              pro: '✅' },
 ];
 
 export default function ProPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
   const [billingStatus, setBillingStatus] = useState(null);
+  const [pricing, setPricing] = useState({ monthly: 2.99, annual: 19.99 });
   const [checkoutLoading, setCheckoutLoading] = useState(null); // 'monthly' | 'annual'
   const [portalLoading, setPortalLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    apiFetch('/settings').then(({ data }) => {
+      if (data?.data) {
+        setPricing({
+          monthly: data.data.pro_monthly_price,
+          annual: data.data.pro_annual_price,
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -59,6 +71,9 @@ export default function ProPage() {
   }
 
   const isPro = billingStatus?.is_pro;
+  const savingsPct = pricing.monthly > 0
+    ? Math.round((1 - pricing.annual / (pricing.monthly * 12)) * 100)
+    : 44;
 
   return (
     <>
@@ -138,7 +153,7 @@ export default function ProPage() {
                 hover:border-white/30 hover:bg-white/5 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-text-secondary text-sm mb-2 self-start">Monthly</span>
-              <span className="text-white font-black text-4xl mb-1">$2.99</span>
+              <span className="text-white font-black text-4xl mb-1">${pricing.monthly.toFixed(2)}</span>
               <span className="text-text-muted text-xs mb-6">per month</span>
               <span className="w-full py-2.5 rounded-xl bg-surface border border-border text-white text-sm font-semibold text-center">
                 {checkoutLoading === 'monthly' ? 'Redirecting...' : (user ? 'Get Monthly' : 'Sign In to Subscribe')}
@@ -158,9 +173,9 @@ export default function ProPage() {
                 BEST VALUE
               </span>
               <span className="text-text-secondary text-sm mb-2 self-start mt-2">Annual</span>
-              <span className="text-amber-400 font-black text-4xl mb-1">$19.99</span>
+              <span className="text-amber-400 font-black text-4xl mb-1">${pricing.annual.toFixed(2)}</span>
               <span className="text-amber-400/70 text-xs mb-1">per year</span>
-              <span className="text-text-muted text-xs mb-6">Save 44% vs monthly</span>
+              <span className="text-text-muted text-xs mb-6">Save {savingsPct}% vs monthly</span>
               <span className="w-full py-2.5 rounded-xl bg-amber-400 text-amber-900 text-sm font-bold text-center">
                 {checkoutLoading === 'annual' ? 'Redirecting...' : (user ? 'Get Annual' : 'Sign In to Subscribe')}
               </span>

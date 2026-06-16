@@ -11,8 +11,8 @@ class SettingController extends Controller
     private array $defaults = [
         'platform_name' => 'NamFlix',
         'max_free_favorites' => '20',
-        'pro_monthly_price' => '4.99',
-        'pro_annual_price' => '39.99',
+        'pro_monthly_price' => '2.99',
+        'pro_annual_price' => '19.99',
         'maintenance_mode' => '0',
         'admin_email' => '',
     ];
