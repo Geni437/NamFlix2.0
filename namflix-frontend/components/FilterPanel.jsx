@@ -17,9 +17,9 @@ export default function FilterPanel({ filters, onChange }) {
   const searchTimer = useRef(null);
 
   useEffect(() => {
-    apiFetch('/countries').then(({ data }) => setCountries(data || []));
-    apiFetch('/languages').then(({ data }) => setLanguages(data || []));
-    apiFetch('/categories').then(({ data }) => setCategories(data || []));
+    apiFetch('/countries').then(({ data }) => setCountries(data?.data || []));
+    apiFetch('/languages').then(({ data }) => setLanguages(data?.data || []));
+    apiFetch('/categories').then(({ data }) => setCategories(data?.data || []));
   }, []);
 
   const handleSearch = (val) => {

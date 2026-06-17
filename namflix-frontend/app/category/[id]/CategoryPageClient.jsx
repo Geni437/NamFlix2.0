@@ -67,7 +67,7 @@ export default function CategoryPageClient() {
       setPage(1);
       setChannels([]);
       load(1, '');
-      apiFetch('/countries').then(({ data }) => setCountries(data || []));
+      apiFetch('/countries').then(({ data }) => setCountries(data?.data || []));
     }
   }, [id]);
 

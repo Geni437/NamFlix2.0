@@ -100,7 +100,7 @@ export default function HomePage() {
 
   useEffect(() => {
     apiFetch(buildUrl('/trending', { limit: 20 })).then(({ data }) => {
-      const list = data?.channels || data || [];
+      const list = data?.channels || data?.data || [];
       if (list.length > 0) setFeatured(list[0]);
       setHeroLoading(false);
     });
