@@ -22,6 +22,10 @@
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true">
 
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme" />
+
             <!-- Deep link: namflix:// scheme -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -59,5 +63,16 @@
                 <data android:scheme="namflix" android:host="login-callback" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
     </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
 </manifest>
