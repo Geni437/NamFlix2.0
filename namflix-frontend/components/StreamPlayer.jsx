@@ -35,15 +35,12 @@ export default function StreamPlayer({ streams = [], channelName, channelLogo, o
 
     const Hls = (await import('hls.js')).default;
 
-    if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('hls'))) {
+    // Treat any URL as potentially HLS — many iptv-org URLs have no .m3u8 extension
+    if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
-        xhrSetup: (xhr) => {
-          if (stream.user_agent) {
-            xhr.setRequestHeader('User-Agent', stream.user_agent);
-          }
-        },
+        // User-Agent is a browser-forbidden header; cannot be set via XHR
       });
 
       hls.loadSource(url);

@@ -30,7 +30,7 @@ function FavoriteButton({ channelId }) {
       await apiFetch(`/me/favorites/${channelId}`, { method: 'DELETE' });
       setIsFav(false);
     } else {
-      await apiFetch('/me/favorites', { method: 'POST', body: JSON.stringify({ channel_id: channelId }) });
+      await apiFetch(`/me/favorites/${channelId}`, { method: 'POST' });
       setIsFav(true);
     }
     setLoading(false);
