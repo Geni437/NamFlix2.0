@@ -109,6 +109,8 @@ class ChannelController extends Controller
             'data' => array_merge($channel->toArray(), [
                 'streams' => $streams,
                 'logo' => $logo,
+                'logo_url' => $logo?->url,
+                'country' => $channel->country_code,
                 'current_program' => $currentProgram,
                 'next_program' => $nextProgram,
             ]),

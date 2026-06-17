@@ -18,7 +18,7 @@ function FavoriteButton({ channelId }) {
   useEffect(() => {
     if (!user || !channelId || channelId === 'placeholder') return;
     apiFetch('/me/favorites').then(({ data }) => {
-      const ids = (data?.channels || data || []).map(c => c.id);
+      const ids = (data?.data || []).map(c => c.id);
       setIsFav(ids.includes(channelId));
     });
   }, [user, channelId]);
@@ -124,7 +124,7 @@ export default function ChannelPageClient() {
 
     apiFetch(`/channels/${id}`).then(({ data, error }) => {
       if (error) setError(error);
-      else setChannel(data?.channel || data);
+      else setChannel(data?.data);
       setLoading(false);
     });
 

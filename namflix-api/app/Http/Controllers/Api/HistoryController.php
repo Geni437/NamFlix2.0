@@ -23,10 +23,12 @@ class HistoryController extends Controller
             ->skip($offset)
             ->take($limit)
             ->get()
-            ->groupBy(fn ($h) => $h->watched_at->format('Y-m-d'))
-            ->map(fn ($items, $date) => [
-                'date' => $date,
-                'items' => $items->values(),
+            ->map(fn ($h) => [
+                'channel_id' => $h->channel_id,
+                'channel_name' => $h->channel?->name,
+                'logo_url' => $h->channel?->logo?->url,
+                'country' => $h->channel?->country_code,
+                'watched_at' => $h->watched_at,
             ])
             ->values();
 

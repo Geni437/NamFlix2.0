@@ -16,6 +16,8 @@ class Channel extends Model
         'is_nsfw', 'is_hidden', 'launched', 'website', 'synced_at',
     ];
 
+    protected $appends = ['logo_url', 'country'];
+
     protected $casts = [
         'alt_names' => 'array',
         'categories' => 'array',
@@ -24,6 +26,19 @@ class Channel extends Model
         'launched' => 'date',
         'synced_at' => 'datetime',
     ];
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        if ($this->relationLoaded('logo')) {
+            return $this->logo?->url;
+        }
+        return null;
+    }
+
+    public function getCountryAttribute(): ?string
+    {
+        return $this->country_code;
+    }
 
     public function streams(): HasMany
     {

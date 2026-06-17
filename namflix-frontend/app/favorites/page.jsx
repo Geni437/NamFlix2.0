@@ -19,7 +19,7 @@ export default function FavoritesPage() {
 
     apiFetch('/me/favorites').then(({ data, error }) => {
       if (error) setError(error);
-      else setChannels(data?.channels || data || []);
+      else setChannels(data?.data || []);
       setLoading(false);
     });
   }, [user, authLoading]);

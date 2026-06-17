@@ -41,7 +41,7 @@ export default function HistoryPage() {
     if (!user) { setLoading(false); return; }
 
     apiFetch('/me/history').then(({ data }) => {
-      const list = data?.history || data || [];
+      const list = data?.data || [];
       setGroups(groupByDate(list));
       setLoading(false);
     });
